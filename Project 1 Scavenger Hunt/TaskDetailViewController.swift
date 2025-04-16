@@ -34,6 +34,17 @@ class TaskDetailViewController: UIViewController, PHPickerViewControllerDelegate
         title = "Task Detail"
         setupUI()
         setupLocation()
+        
+        let defaultLocation = CLLocationCoordinate2D(latitude: 38.9072, longitude: -77.0369) // DC
+        let region = MKCoordinateRegion(center: defaultLocation,
+                                        span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01))
+        mapView.setRegion(region, animated: false)
+
+        let annotation = MKPointAnnotation()
+        annotation.coordinate = defaultLocation
+        annotation.title = "Default Location"
+        mapView.addAnnotation(annotation)
+
     }
 
     func setupUI() {
@@ -41,10 +52,18 @@ class TaskDetailViewController: UIViewController, PHPickerViewControllerDelegate
         titleLabel.text = task.title
         descriptionLabel.text = task.description
         photoImageView.image = task.photo ?? UIImage(systemName: "photo")
-        mapView.isHidden = task.location == nil
+
+        // Always show the map view and set a default location
+        mapView.isHidden = false
 
         if let location = task.location {
             addMapPin(location)
+        } else {
+            // Force a default map region (e.g., DC or campus)
+            let defaultLocation = CLLocationCoordinate2D(latitude: 38.9072, longitude: -77.0369)
+            let defaultRegion = MKCoordinateRegion(center: defaultLocation,
+                                                   span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01))
+            mapView.setRegion(defaultRegion, animated: false)
         }
     }
 
@@ -80,6 +99,8 @@ class TaskDetailViewController: UIViewController, PHPickerViewControllerDelegate
                 self.task?.location = self.currentLocation
 
                 self.photoImageView.image = image
+                self.view.setNeedsLayout()       //Tell the view to update layout
+                self.view.layoutIfNeeded()       //Force it to layout immediately
 
                 if let location = self.currentLocation {
                     self.mapView.isHidden = false
@@ -103,8 +124,22 @@ class TaskDetailViewController: UIViewController, PHPickerViewControllerDelegate
                           animated: true)
     }
 
+//    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+//        currentLocation = locations.first?.coordinate
+//    }
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         currentLocation = locations.first?.coordinate
+
+        // Only run this if we have a photo already but the location came in late
+        if task?.isCompleted == true, task?.location == nil, let coord = currentLocation {
+            task?.location = coord
+            mapView.isHidden = false
+            addMapPin(coord)
+
+            if let updatedTask = task, let index = taskIndex {
+                delegate?.updateTask(updatedTask, at: index)
+            }
+        }
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
