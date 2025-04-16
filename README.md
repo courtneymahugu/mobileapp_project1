@@ -4,7 +4,7 @@ Submitted by: **Courtney Mahugu**
 
 **Scavenger Hunt** is an app that lets users complete photo-based tasks by attaching pictures.
 
-Time spent: **6** hours spent in total
+Time spent: **8** hours spent in total
 
 ## Required Features
 
@@ -35,6 +35,7 @@ Here is a reminder on how to embed Loom videos on GitHub. Feel free to remove th
 Describe any challenges encountered while building the app.
 - Struggled with IBOutlet crashes and layout constraints.
 - Struggled with testing on phone.
+- Struggled getting the map to show and work.
 
 ## License
 
